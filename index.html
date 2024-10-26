@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<!--
+    Autor: Martin Stangl
+    © 2024 Martin Stangl. Alle Rechte vorbehalten.
+-->
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lernprogramm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #87CEEB;
+        }
+
+        .option-btn {
+            background-color: #4682B4;
+            color: white;
+            width: 150px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .lesson-selection {
+            margin: 20px 0;
+        }
+
+        .home-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+        }
+
+        .home-icon img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .quiz-container {
+            margin-top: 50px;
+        }
+
+        .word-display {
+            font-size: 36px;
+            margin: 40px 0;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .option-btn {
+            padding: 10px 20px;
+            font-size: 20px;
+        }
+
+        .scoreboard {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        #input-field {
+            font-size: 20px;
+            padding: 10px;
+            margin-top: 20px;
+            width: 300px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="home-icon" onclick="goToHome()">
+        <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
+    </div>
+
+    <h1 id="headerText">Wähle eine CSV-Datei</h1>
+
+    <div id="csv-upload-section">
+        <h2>CSV-Datei hochladen</h2>
+        <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile()">
+    </div>
+
+    <div id="lesson-selection-section" class="hidden">
+        <h2>Lektionen:</h2>
+        <div id="lesson-selection" class="lesson-selection"></div>
+        <button class="option-btn" onclick="startQuiz()">Zuordnungs-Quiz Starten</button>
+        <button class="option-btn" onclick="startLearning()">Lernen Starten</button>
+        <button class="option-btn" onclick="startWriting()">Schreiben Starten</button>
+    </div>
+    <div id="quiz-section" class="hidden">
+        <h2>Zuordnung Quiz</h2>
+        <div class="quiz-container">
+            <div id="word-display" class="word-display"></div>
+            <div id="options" class="options"></div>
+            <div id="scoreboard" class="scoreboard"></div>
+        </div>
+    </div>
+
+    <div id="learning-section" class="hidden">
+        <h2>Lernmodus</h2>
+        <div class="quiz-container">
+            <div id="german-word-display" class="word-display"></div>
+            <div id="learning-options" class="options"></div>
+            <div id="learning-scoreboard" class="scoreboard"></div>
+        </div>
+    </div>
+
+    <div id="writing-section" class="hidden">
+        <h2>Schreibmodus</h2>
+        <div class="quiz-container">
+            <div id="german-word-writing" class="word-display"></div>
+            <input type="text" id="input-field" placeholder="Englische Übersetzung eingeben"
+                onkeydown="if (event.key === 'Enter') checkInput()">
+
+            <button class="option-btn" onclick="checkInput()">Überprüfen</button>
+            <div id="writing-scoreboard" class="scoreboard"></div>
+        </div>
+    </div>
+
+    <script>
+        let data = [];
+        let selectedLessons = [];
+        let currentDataset = [];
+        let currentIndex = 0;
+        let correctAnswersCount = 0;
+        let wrongAnswersCount = 0;
+        let wrongAnswersLearningCount = 0;
+
+        function loadCSVFile() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const text = e.target.result;
+                data = parseCSV(text);
+
+                // Lektionen anzeigen
+                document.getElementById('csv-upload-section').classList.add('hidden');
+                document.getElementById('lesson-selection-section').classList.remove('hidden');
+                const lessons = [...new Set(data.map(item => item.Lesson))];
+                displayLessonSelection(lessons);
+                document.getElementById('headerText').innerText = 'Wähle Lektionen und anschließend einen Modus';
+            };
+
+            if (file) {
+                reader.readAsText(file);
+                proceedToModeSelection()
+            } else {
+                alert('Bitte wähle eine CSV-Datei aus.');
+            }
+        }
+
+        function parseCSV(text) {
+            const rows = text.trim().split('\n').slice(1);
+            return rows.map(row => {
+                const [Lesson, English, Deutsch] = row.split(';');
+                return { Lesson, English, Deutsch };
+            });
+        }
+
+        function startAssignmentMode() {
+            document.getElementById('mode-selection').classList.add('hidden');
+            document.getElementById('lesson-selection-section').classList.remove('hidden');
+            const lessons = [...new Set(data.map(item => item.Lesson))];
+            displayLessonSelection(lessons);
+        }
+
+        function displayLessonSelection(lessons) {
+            const lessonSelectionDiv = document.getElementById('lesson-selection');
+            lessonSelectionDiv.innerHTML = '';
+
+            lessons.forEach(lesson => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = lesson;
+                checkbox.id = lesson;
+                lessonSelectionDiv.appendChild(checkbox);
+
+                const label = document.createElement('label');
+                label.htmlFor = lesson;
+                label.innerText = lesson;
+                lessonSelectionDiv.appendChild(label);
+
+                const br = document.createElement('br');
+                lessonSelectionDiv.appendChild(br);
+            });
+        }
+        function hideHeaderText() {
+            document.getElementById('headerText').classList.add('hidden');
+        }
+        function startQuiz() {
+            hideHeaderText(); // Header-Text ausblenden
+            setupQuizOrLearning('quiz-section');
+        }
+
+        function startLearning() {
+            hideHeaderText(); // Header-Text ausblenden
+            setupQuizOrLearning('learning-section');
+        }
+
+        function startWriting() {
+            hideHeaderText(); // Header-Text ausblenden
+            setupQuizOrLearning('writing-section');
+        }
+
+        function showNextWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Quiz beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            const wordDisplay = document.getElementById('word-display');
+            wordDisplay.innerText = currentWord.English;
+            speakText(currentWord.English);
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+
+            const correctAnswer = currentWord.Deutsch;
+            const wrongAnswers = getRandomWrongAnswers(correctAnswer);
+            const allOptions = [correctAnswer, ...wrongAnswers];
+            shuffleArray(allOptions);
+
+            allOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.classList.add('option-btn');
+                btn.innerText = option;
+                btn.onclick = function () {
+                    if (option === correctAnswer) {
+                        correctAnswersCount++;
+                    } else {
+                        wrongAnswersCount++;
+                    }
+                    currentIndex++;
+                    updateScoreboard();
+                    showNextWord();
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            updateScoreboard();
+        }
+        function getRandomWrongAnswers(correctAnswer) {
+            const wrongAnswers = data
+                .filter(item => item.Deutsch !== correctAnswer)
+                .map(item => item.Deutsch);
+
+            const shuffledWrongAnswers = shuffleArray(wrongAnswers);
+            return shuffledWrongAnswers.slice(0, 3);
+        }
+
+
+        function proceedToModeSelection() {
+            document.getElementById('lesson-selection-section').classList.add('hidden');
+            document.getElementById('headerText').innerText = 'Wähle einen Modus';
+        }
+        function setupQuizOrLearning(section) {
+            const selectedCheckboxes = Array.from(document.querySelectorAll('#lesson-selection input:checked'));
+            selectedLessons = selectedCheckboxes.map(checkbox => checkbox.value);
+            currentDataset = data.filter(item => selectedLessons.includes(item.Lesson));
+
+            if (currentDataset.length > 0) {
+                document.getElementById('lesson-selection-section').classList.add('hidden');
+                document.getElementById(section).classList.remove('hidden');
+                currentIndex = 0;
+                correctAnswersCount = 0;
+                wrongAnswersCount = 0;
+                wrongAnswersLearningCount = 0;
+
+                if (section === 'quiz-section') {
+                    showNextWord();
+                } else if (section === 'learning-section') {
+                    showNextLearningWord();
+                } else if (section === 'writing-section') {
+                    showNextWritingWord();
+                }
+            } else {
+                alert('Bitte wähle mindestens eine Lektion aus.');
+            }
+        }
+
+        function showNextWritingWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Schreiben beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            document.getElementById('german-word-writing').innerText = currentWord.Deutsch;
+            document.getElementById('input-field').value = '';
+            updateWritingScoreboard();
+        }
+
+        // Text-to-Speech Funktion
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-GB';
+
+            // Stimme explizit auf eine englische Stimme setzen
+            const voices = window.speechSynthesis.getVoices();
+            const englishVoice = voices.find(voice => voice.lang.startsWith("en"));
+
+            if (englishVoice) {
+                utterance.voice = englishVoice;
+            } else {
+                console.warn("Keine passende englische Stimme gefunden.");
+            }
+
+            // Prüfen, ob die API unterstützt wird und sprechen
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn("Sprachsynthese nicht unterstützt");
+            }
+        } function checkInput() {
+            const input = document.getElementById('input-field').value.trim();
+            const currentWord = currentDataset[currentIndex];
+
+            if (input.toLowerCase() === currentWord.English.toLowerCase()) {
+                correctAnswersCount++;
+                currentIndex++;
+                speakText(currentWord.English); // Englischen Begriff vorlesen
+                showNextWritingWord();
+            } else {
+                wrongAnswersCount++;
+                speakText(currentWord.English); // Englischen Begriff vorlesen
+                updateWritingScoreboard();
+            }
+        }
+
+        function updateWritingScoreboard() {
+            const writingScoreboard = document.getElementById('writing-scoreboard');
+            writingScoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}, Verbleibende Fragen: ${currentDataset.length - currentIndex}`;
+        }
+
+        function showNextLearningWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Lernen beendet! Fehler: ${wrongAnswersLearningCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            const germanWordDisplay = document.getElementById('german-word-display');
+            germanWordDisplay.innerText = currentWord.Deutsch;
+
+            const correctAnswer = currentWord.English;
+            const variations = generateVariations(correctAnswer);
+
+            const optionsDiv = document.getElementById('learning-options');
+            optionsDiv.innerHTML = '';
+
+            const allOptions = [correctAnswer, ...variations];
+            shuffleArray(allOptions);
+
+            allOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.classList.add('option-btn');
+                btn.innerText = option;
+                btn.onclick = function () {
+                    speakText(option);
+                    if (option === correctAnswer) {
+                        currentIndex++;
+                        showNextLearningWord();
+                    } else {
+                        wrongAnswersLearningCount++;
+                        updateLearningScoreboard();
+                    }
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            updateLearningScoreboard();
+        }
+
+        function generateVariations(correctAnswer) {
+            const variations = [];
+            const letters = correctAnswer.split('');
+
+            // Variation 1: Remove a random letter
+            const variation1 = correctAnswer.slice(0, Math.floor(Math.random() * letters.length)) + correctAnswer.slice(Math.floor(Math.random() * letters.length) + 1);
+            variations.push(variation1);
+
+            // Variation 2: Swap two adjacent letters
+            const index = Math.floor(Math.random() * (letters.length - 1));
+            const variation2 = letters.slice();
+            [variation2[index], variation2[index + 1]] = [variation2[index + 1], variation2[index]];
+            variations.push(variation2.join(''));
+
+            // Variation 3: Add an extra random letter at the end
+            const variation3 = correctAnswer + String.fromCharCode(97 + Math.floor(Math.random() * 26));
+            variations.push(variation3);
+
+            return variations;
+        }
+
+        function showPlaceholder() {
+            alert('Lernmodus ist noch nicht verfügbar.');
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function updateScoreboard() {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}, Verbleibende Fragen: ${currentDataset.length - currentIndex}`;
+        }
+
+        function updateLearningScoreboard() {
+            const learningScoreboard = document.getElementById('learning-scoreboard');
+            learningScoreboard.innerText = `Fehler: ${wrongAnswersLearningCount}`;
+        }
+
+        function goToHome() {
+            // Alle Abschnitte ausblenden und nur Lektionenauswahl anzeigen
+            document.getElementById('csv-upload-section').classList.add('hidden');
+            document.getElementById('lesson-selection-section').classList.remove('hidden');
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('learning-section').classList.add('hidden');
+            document.getElementById('writing-section').classList.add('hidden');
+
+            // Header-Text zurücksetzen und wieder anzeigen
+            document.getElementById('headerText').innerText = 'Wähle Lektionen und anschließend einen Modus';
+            document.getElementById('headerText').classList.remove('hidden');
+        }
+
+    </script>
+
+</body>
+
+</html>
