@@ -39,7 +39,7 @@
         .option-btn {
             background-color: #4682B4;
             color: white;
-            width: 150px;
+            width: 170px;
         }
 
         .hidden {
@@ -156,29 +156,9 @@
         let wrongAnswersCount = 0;
         let wrongAnswersLearningCount = 0;
 
-        function loadCSVFile() {
-            const fileInput = document.getElementById('csvFileInput');
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-                const text = e.target.result;
-                data = parseCSV(text);
-
-                // Lektionen anzeigen
-                document.getElementById('csv-upload-section').classList.add('hidden');
-                document.getElementById('lesson-selection-section').classList.remove('hidden');
-                const lessons = [...new Set(data.map(item => item.Lesson))];
-                displayLessonSelection(lessons);
-                document.getElementById('headerText').innerText = 'Wähle Lektionen und anschließend einen Modus';
-            };
-
-            if (file) {
-                reader.readAsText(file);
-                proceedToModeSelection()
-            } else {
-                alert('Bitte wähle eine CSV-Datei aus.');
-            }
+        function loadCSVFile(fileContent) {
+            data = parseCSV(fileContent);
+            proceedToModeSelection();
         }
 
         function parseCSV(text) {
@@ -189,11 +169,9 @@
             });
         }
 
-        function startAssignmentMode() {
-            document.getElementById('mode-selection').classList.add('hidden');
-            document.getElementById('lesson-selection-section').classList.remove('hidden');
-            const lessons = [...new Set(data.map(item => item.Lesson))];
-            displayLessonSelection(lessons);
+        function proceedToModeSelection() {
+            document.getElementById('lesson-selection-section').classList.add('hidden');
+            document.getElementById('headerText').innerText = 'Wähle einen Modus';
         }
 
         function displayLessonSelection(lessons) {
@@ -216,21 +194,30 @@
                 lessonSelectionDiv.appendChild(br);
             });
         }
+
+        function startAssignmentMode() {
+            document.getElementById('mode-selection').classList.add('hidden');
+            document.getElementById('lesson-selection-section').classList.remove('hidden');
+            const lessons = [...new Set(data.map(item => item.Lesson))];
+            displayLessonSelection(lessons);
+        }
+
         function hideHeaderText() {
             document.getElementById('headerText').classList.add('hidden');
         }
+
         function startQuiz() {
-            hideHeaderText(); // Header-Text ausblenden
+            hideHeaderText(); 
             setupQuizOrLearning('quiz-section');
         }
 
         function startLearning() {
-            hideHeaderText(); // Header-Text ausblenden
+            hideHeaderText(); 
             setupQuizOrLearning('learning-section');
         }
 
         function startWriting() {
-            hideHeaderText(); // Header-Text ausblenden
+            hideHeaderText(); 
             setupQuizOrLearning('writing-section');
         }
 
@@ -272,6 +259,7 @@
 
             updateScoreboard();
         }
+
         function getRandomWrongAnswers(correctAnswer) {
             const wrongAnswers = data
                 .filter(item => item.Deutsch !== correctAnswer)
@@ -281,11 +269,6 @@
             return shuffledWrongAnswers.slice(0, 3);
         }
 
-
-        function proceedToModeSelection() {
-            document.getElementById('lesson-selection-section').classList.add('hidden');
-            document.getElementById('headerText').innerText = 'Wähle einen Modus';
-        }
         function setupQuizOrLearning(section) {
             const selectedCheckboxes = Array.from(document.querySelectorAll('#lesson-selection input:checked'));
             selectedLessons = selectedCheckboxes.map(checkbox => checkbox.value);
@@ -307,126 +290,13 @@
                     showNextWritingWord();
                 }
             } else {
-                alert('Bitte wähle mindestens eine Lektion aus.');
+                alert('Bitte wählen Sie eine Lektion aus.');
             }
         }
 
-        function showNextWritingWord() {
-            if (currentIndex >= currentDataset.length) {
-                alert(`Schreiben beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
-                return;
-            }
-
-            const currentWord = currentDataset[currentIndex];
-            document.getElementById('german-word-writing').innerText = currentWord.Deutsch;
-            document.getElementById('input-field').value = '';
-            updateWritingScoreboard();
-        }
-
-        // Text-to-Speech Funktion
-        function speakText(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-GB';
-
-            // Stimme explizit auf eine englische Stimme setzen
-            const voices = window.speechSynthesis.getVoices();
-            const englishVoice = voices.find(voice => voice.lang.startsWith("en"));
-
-            if (englishVoice) {
-                utterance.voice = englishVoice;
-            } else {
-                console.warn("Keine passende englische Stimme gefunden.");
-            }
-
-            // Prüfen, ob die API unterstützt wird und sprechen
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.speak(utterance);
-            } else {
-                console.warn("Sprachsynthese nicht unterstützt");
-            }
-        } function checkInput() {
-            const input = document.getElementById('input-field').value.trim();
-            const currentWord = currentDataset[currentIndex];
-
-            if (input.toLowerCase() === currentWord.English.toLowerCase()) {
-                correctAnswersCount++;
-                currentIndex++;
-                speakText(currentWord.English); // Englischen Begriff vorlesen
-                showNextWritingWord();
-            } else {
-                wrongAnswersCount++;
-                speakText(currentWord.English); // Englischen Begriff vorlesen
-                updateWritingScoreboard();
-            }
-        }
-
-        function updateWritingScoreboard() {
-            const writingScoreboard = document.getElementById('writing-scoreboard');
-            writingScoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}, Verbleibende Fragen: ${currentDataset.length - currentIndex}`;
-        }
-
-        function showNextLearningWord() {
-            if (currentIndex >= currentDataset.length) {
-                alert(`Lernen beendet! Fehler: ${wrongAnswersLearningCount}`);
-                return;
-            }
-
-            const currentWord = currentDataset[currentIndex];
-            const germanWordDisplay = document.getElementById('german-word-display');
-            germanWordDisplay.innerText = currentWord.Deutsch;
-
-            const correctAnswer = currentWord.English;
-            const variations = generateVariations(correctAnswer);
-
-            const optionsDiv = document.getElementById('learning-options');
-            optionsDiv.innerHTML = '';
-
-            const allOptions = [correctAnswer, ...variations];
-            shuffleArray(allOptions);
-
-            allOptions.forEach(option => {
-                const btn = document.createElement('button');
-                btn.classList.add('option-btn');
-                btn.innerText = option;
-                btn.onclick = function () {
-                    speakText(option);
-                    if (option === correctAnswer) {
-                        currentIndex++;
-                        showNextLearningWord();
-                    } else {
-                        wrongAnswersLearningCount++;
-                        updateLearningScoreboard();
-                    }
-                };
-                optionsDiv.appendChild(btn);
-            });
-
-            updateLearningScoreboard();
-        }
-
-        function generateVariations(correctAnswer) {
-            const variations = [];
-            const letters = correctAnswer.split('');
-
-            // Variation 1: Remove a random letter
-            const variation1 = correctAnswer.slice(0, Math.floor(Math.random() * letters.length)) + correctAnswer.slice(Math.floor(Math.random() * letters.length) + 1);
-            variations.push(variation1);
-
-            // Variation 2: Swap two adjacent letters
-            const index = Math.floor(Math.random() * (letters.length - 1));
-            const variation2 = letters.slice();
-            [variation2[index], variation2[index + 1]] = [variation2[index + 1], variation2[index]];
-            variations.push(variation2.join(''));
-
-            // Variation 3: Add an extra random letter at the end
-            const variation3 = correctAnswer + String.fromCharCode(97 + Math.floor(Math.random() * 26));
-            variations.push(variation3);
-
-            return variations;
-        }
-
-        function showPlaceholder() {
-            alert('Lernmodus ist noch nicht verfügbar.');
+        function updateScoreboard() {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`;
         }
 
         function shuffleArray(array) {
@@ -437,31 +307,25 @@
             return array;
         }
 
-        function updateScoreboard() {
-            const scoreboard = document.getElementById('scoreboard');
-            scoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}, Verbleibende Fragen: ${currentDataset.length - currentIndex}`;
-        }
-
-        function updateLearningScoreboard() {
-            const learningScoreboard = document.getElementById('learning-scoreboard');
-            learningScoreboard.innerText = `Fehler: ${wrongAnswersLearningCount}`;
-        }
-
         function goToHome() {
-            // Alle Abschnitte ausblenden und nur Lektionenauswahl anzeigen
-            document.getElementById('csv-upload-section').classList.add('hidden');
-            document.getElementById('lesson-selection-section').classList.remove('hidden');
-            document.getElementById('quiz-section').classList.add('hidden');
-            document.getElementById('learning-section').classList.add('hidden');
-            document.getElementById('writing-section').classList.add('hidden');
-
-            // Header-Text zurücksetzen und wieder anzeigen
-            document.getElementById('headerText').innerText = 'Wähle Lektionen und anschließend einen Modus';
-            document.getElementById('headerText').classList.remove('hidden');
+            document.getElementById('lesson-selection-section').classList.add('hidden');
+            document.getElementById('headerText').innerText = 'Wähle eine CSV-Datei';
+            document.getElementById('csv-upload-section').classList.remove('hidden');
+            document.getElementById('csvFileInput').value = ''; // Clear the file input
         }
 
-    </script>
+        function loadDefaultCSV() {
+            const defaultFileName = 'lessons.csv';
+            fetch(defaultFileName)
+                .then(response => response.text())
+                .then(fileContent => loadCSVFile(fileContent))
+                .catch(error => console.error('Fehler beim Laden der Standard-CSV-Datei:', error));
+        }
 
+        window.onload = function () {
+            loadDefaultCSV();
+        };
+    </script>
 </body>
 
 </html>
