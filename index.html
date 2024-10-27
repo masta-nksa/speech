@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-    Autor: Martin Stangl
-    © 2024 Martin Stangl. Alle Rechte vorbehalten.
--->
 <html lang="de">
 
 <head>
@@ -46,15 +42,16 @@
             display: none;
         }
 
-        .lesson-selection {
-            margin: 20px 0;
-        }
-
         .home-icon {
             position: absolute;
             top: 20px;
             left: 20px;
             cursor: pointer;
+        }
+
+        .error {
+            border: 2px solid red;
+            background-color: red;
         }
 
         .home-icon img {
@@ -75,11 +72,6 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-        }
-
-        .option-btn {
-            padding: 10px 20px;
-            font-size: 20px;
         }
 
         .scoreboard {
@@ -103,49 +95,47 @@
         <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
     </div>
 
-    <h1 id="headerText">Wähle eine CSV-Datei</h1>
+    <h1 id="headerText">Choose a csv-file.</h1>
 
     <div id="csv-upload-section">
-        <h2>CSV-Datei hochladen</h2>
-        <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile()">
+        <h2>csv-fileupload</h2>
+        <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile(event)">
     </div>
 
     <div id="lesson-selection-section" class="hidden">
-        <h2>Lektionen:</h2>
+        <h2>lessons:</h2>
         <div id="lesson-selection" class="lesson-selection"></div>
-        <button class="option-btn" onclick="startQuiz()">Zuordnungs-Quiz Starten</button>
-        <button class="option-btn" onclick="startLearning()">Lernen Starten</button>
-        <button class="option-btn" onclick="startWriting()">Schreiben Starten</button>
+        <button class="option-btn" onclick="startQuiz()">terms</button>
+        <button class="option-btn" onclick="startLearning()">spelling</button>
+        <button class="option-btn" onclick="startWriting()">writing</button>
     </div>
+
     <div id="quiz-section" class="hidden">
-        <h2>Zuordnung Quiz</h2>
+        <h2>find the term</h2>
         <div class="quiz-container">
             <div id="word-display" class="word-display"></div>
             <div id="options" class="options"></div>
-            <div id="scoreboard" class="scoreboard"></div>
         </div>
     </div>
 
     <div id="learning-section" class="hidden">
-        <h2>Lernmodus</h2>
+        <h2>leaning</h2>
         <div class="quiz-container">
             <div id="german-word-display" class="word-display"></div>
             <div id="learning-options" class="options"></div>
-            <div id="learning-scoreboard" class="scoreboard"></div>
         </div>
     </div>
 
     <div id="writing-section" class="hidden">
-        <h2>Schreibmodus</h2>
+        <h2>writing</h2>
         <div class="quiz-container">
             <div id="german-word-writing" class="word-display"></div>
             <input type="text" id="input-field" placeholder="Englische Übersetzung eingeben"
-                onkeydown="if (event.key === 'Enter') checkInput()">
-
+                onkeydown="if (event.key === 'Enter') { event.preventDefault(); checkInput(); }">
             <button class="option-btn" onclick="checkInput()">Überprüfen</button>
-            <div id="writing-scoreboard" class="scoreboard"></div>
         </div>
     </div>
+    <div id="scoreboard" class="scoreboard"></div>
 
     <script>
         let data = [];
@@ -155,23 +145,52 @@
         let correctAnswersCount = 0;
         let wrongAnswersCount = 0;
         let wrongAnswersLearningCount = 0;
+        window.addEventListener("DOMContentLoaded", loadDefaultCSV);
 
-        function loadCSVFile(fileContent) {
-            data = parseCSV(fileContent);
-            proceedToModeSelection();
+        function loadDefaultCSV() {
+            fetch("lessons.csv")
+                .then(response => {
+                    if (!response.ok) throw new Error("Standard-CSV-Datei konnte nicht geladen werden.");
+                    return response.text();
+                })
+                .then(text => {
+                    data = parseCSV(text);
+                    showLessonSelection();
+                })
+                .catch(error => console.error(error.message));
+        }
+
+        function loadCSVFile(event) {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            if (!file) {
+                alert('Choose a csv-file.');
+                return;
+            }
+
+            reader.onload = (e) => {
+                data = parseCSV(e.target.result);
+                showLessonSelection();
+            };
+
+            reader.readAsText(file);
         }
 
         function parseCSV(text) {
-            const rows = text.trim().split('\n').slice(1);
-            return rows.map(row => {
+            return text.trim().split('\n').slice(1).map(row => {
                 const [Lesson, English, Deutsch] = row.split(';');
                 return { Lesson, English, Deutsch };
             });
         }
 
-        function proceedToModeSelection() {
-            document.getElementById('lesson-selection-section').classList.add('hidden');
-            document.getElementById('headerText').innerText = 'Wähle einen Modus';
+        function showLessonSelection() {
+            document.getElementById('csv-upload-section').classList.add('hidden');
+            document.getElementById('lesson-selection-section').classList.remove('hidden');
+            const lessons = [...new Set(data.map(item => item.Lesson))];
+            displayLessonSelection(lessons);
+            document.getElementById('headerText').innerText = 'First: choose lessons, second choose a mode';
         }
 
         function displayLessonSelection(lessons) {
@@ -179,27 +198,11 @@
             lessonSelectionDiv.innerHTML = '';
 
             lessons.forEach(lesson => {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = lesson;
-                checkbox.id = lesson;
-                lessonSelectionDiv.appendChild(checkbox);
-
-                const label = document.createElement('label');
-                label.htmlFor = lesson;
-                label.innerText = lesson;
-                lessonSelectionDiv.appendChild(label);
-
-                const br = document.createElement('br');
-                lessonSelectionDiv.appendChild(br);
+                lessonSelectionDiv.innerHTML += `
+                    <input type="checkbox" value="${lesson}" id="${lesson}">
+                    <label for="${lesson}">${lesson}</label><br>
+                `;
             });
-        }
-
-        function startAssignmentMode() {
-            document.getElementById('mode-selection').classList.add('hidden');
-            document.getElementById('lesson-selection-section').classList.remove('hidden');
-            const lessons = [...new Set(data.map(item => item.Lesson))];
-            displayLessonSelection(lessons);
         }
 
         function hideHeaderText() {
@@ -207,71 +210,23 @@
         }
 
         function startQuiz() {
-            hideHeaderText(); 
-            setupQuizOrLearning('quiz-section');
+            hideHeaderText();
+            setupQuiz('quiz-section');
         }
 
         function startLearning() {
-            hideHeaderText(); 
-            setupQuizOrLearning('learning-section');
+            hideHeaderText();
+            setupQuiz('learning-section');
         }
 
         function startWriting() {
-            hideHeaderText(); 
-            setupQuizOrLearning('writing-section');
+            hideHeaderText();
+            setupQuiz('writing-section');
         }
 
-        function showNextWord() {
-            if (currentIndex >= currentDataset.length) {
-                alert(`Quiz beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
-                return;
-            }
-
-            const currentWord = currentDataset[currentIndex];
-            const wordDisplay = document.getElementById('word-display');
-            wordDisplay.innerText = currentWord.English;
-            speakText(currentWord.English);
-
-            const optionsDiv = document.getElementById('options');
-            optionsDiv.innerHTML = '';
-
-            const correctAnswer = currentWord.Deutsch;
-            const wrongAnswers = getRandomWrongAnswers(correctAnswer);
-            const allOptions = [correctAnswer, ...wrongAnswers];
-            shuffleArray(allOptions);
-
-            allOptions.forEach(option => {
-                const btn = document.createElement('button');
-                btn.classList.add('option-btn');
-                btn.innerText = option;
-                btn.onclick = function () {
-                    if (option === correctAnswer) {
-                        correctAnswersCount++;
-                    } else {
-                        wrongAnswersCount++;
-                    }
-                    currentIndex++;
-                    updateScoreboard();
-                    showNextWord();
-                };
-                optionsDiv.appendChild(btn);
-            });
-
-            updateScoreboard();
-        }
-
-        function getRandomWrongAnswers(correctAnswer) {
-            const wrongAnswers = data
-                .filter(item => item.Deutsch !== correctAnswer)
-                .map(item => item.Deutsch);
-
-            const shuffledWrongAnswers = shuffleArray(wrongAnswers);
-            return shuffledWrongAnswers.slice(0, 3);
-        }
-
-        function setupQuizOrLearning(section) {
-            const selectedCheckboxes = Array.from(document.querySelectorAll('#lesson-selection input:checked'));
-            selectedLessons = selectedCheckboxes.map(checkbox => checkbox.value);
+        function setupQuiz(section) {
+            selectedLessons = Array.from(document.querySelectorAll('#lesson-selection input:checked'))
+                .map(checkbox => checkbox.value);
             currentDataset = data.filter(item => selectedLessons.includes(item.Lesson));
 
             if (currentDataset.length > 0) {
@@ -290,42 +245,192 @@
                     showNextWritingWord();
                 }
             } else {
-                alert('Bitte wählen Sie eine Lektion aus.');
+                alert('Bitte wähle mindestens eine Lektion aus.');
             }
         }
 
+        function generateVariations(correctAnswer) {
+            const variations = [];
+            const letters = correctAnswer.split('');
+
+            // Variation 1: Remove a random letter
+            const variation1 = correctAnswer.slice(0, Math.floor(Math.random() * letters.length)) + correctAnswer.slice(Math.floor(Math.random() * letters.length) + 1);
+            variations.push(variation1);
+
+            // Variation 2: Swap two adjacent letters
+            const index = Math.floor(Math.random() * (letters.length - 1));
+            const variation2 = letters.slice();
+            [variation2[index], variation2[index + 1]] = [variation2[index + 1], variation2[index]];
+            variations.push(variation2.join(''));
+
+            // Variation 3: Füge einen zusätzlichen zufälligen Kleinbuchstaben an einer zufälligen Stelle im Wort ein
+            const randomLetter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+            const insertPosition = Math.floor(Math.random() * (correctAnswer.length + 1)); // Stelle bestimmen
+            const variation3 = correctAnswer.slice(0, insertPosition) + randomLetter + correctAnswer.slice(insertPosition);
+            variations.push(variation3);
+
+            return variations;
+        }
+
+
+        function showNextWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Quiz beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            document.getElementById('word-display').innerText = currentWord.English;
+            speakText(currentWord.English);
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            const allOptions = shuffleArray([currentWord.Deutsch, ...getRandomWrongAnswers(currentWord.Deutsch)]);
+            allOptions.forEach(option => createOptionButton(option, currentWord.Deutsch, optionsDiv));
+
+            updateScoreboard();
+        }
+
+        function createOptionButton(option, correctAnswer, optionsDiv) {
+            const btn = document.createElement('button');
+            btn.classList.add('option-btn');
+            btn.innerText = option;
+            btn.onclick = () => {
+                option === correctAnswer ? correctAnswersCount++ : wrongAnswersCount++;
+                currentIndex++;
+                updateScoreboard();
+                showNextWord();
+            };
+            optionsDiv.appendChild(btn);
+        }
+
+        function getRandomWrongAnswers(correctAnswer) {
+            const wrongAnswers = data.filter(item => item.Deutsch !== correctAnswer).map(item => item.Deutsch);
+            return shuffleArray(wrongAnswers).slice(0, 3);
+        }
+
+        function showNextWritingWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Schreiben beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            document.getElementById('german-word-writing').innerText = currentWord.Deutsch;
+            document.getElementById('input-field').value = '';
+            updateScoreboard();
+        }
+
+        let attemptCount = 0; // Zähler für Fehlversuche
+
+        function checkInput() {
+            const inputField = document.getElementById('input-field');
+            const input = inputField.value.trim();
+            const correctAnswer = currentDataset[currentIndex].English;
+
+            if (input === correctAnswer) {
+                correctAnswersCount++;
+                attemptCount = 0; // Zurücksetzen bei richtiger Antwort
+                currentIndex++;
+                inputField.classList.remove('error')
+                showNextWritingWord();
+            } else {
+                wrongAnswersCount++;
+                attemptCount++;
+
+                // Rahmen rot aufleuchten lassen
+                inputField.classList.add('error');
+                setTimeout(() => inputField.classList.remove('error'), 500);
+                if (attemptCount >= 2) {
+                    inputField.value = correctAnswer; // Korrekte Antwort anzeigen
+                    attemptCount = 0; // Zurücksetzen für das nächste Wort
+                    currentIndex++;
+                    setTimeout(showNextWritingWord, 2000); // Weiter nach 2 Sekunden
+                }
+            }
+        }
+
+
+
+
+        function showNextLearningWord() {
+            if (currentIndex >= currentDataset.length) {
+                alert(`Lernen beendet! Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}, Falsch im Lernen: ${wrongAnswersLearningCount}`);
+                return;
+            }
+
+            const currentWord = currentDataset[currentIndex];
+            const germanWordDisplay = document.getElementById('german-word-display');
+            germanWordDisplay.innerText = currentWord.Deutsch;
+
+            const correctAnswer = currentWord.English;
+            const variations = generateVariations(correctAnswer);
+
+            const optionsDiv = document.getElementById('learning-options');
+            optionsDiv.innerHTML = '';
+
+            const allOptions = [correctAnswer, ...variations];
+            shuffleArray(allOptions);
+
+            allOptions.forEach(option => {
+                const btn = document.createElement('button');
+                btn.classList.add('option-btn');
+                btn.innerText = option;
+                btn.onclick = function () {
+                    speakText(option);
+                    if (option === correctAnswer) {
+                        currentIndex++;
+                        correctAnswersCount++
+                        updateScoreboard();
+                        showNextLearningWord();
+
+                    } else {
+                        wrongAnswersCount++;
+                        updateScoreboard();
+                    }
+                };
+                optionsDiv.appendChild(btn);
+            });
+
+            updateScoreboard();
+        }
+
+
         function updateScoreboard() {
-            const scoreboard = document.getElementById('scoreboard');
-            scoreboard.innerText = `Richtig: ${correctAnswersCount}, Falsch: ${wrongAnswersCount}`;
+            document.getElementById('scoreboard').innerText = `correct: ${correctAnswersCount} | false: ${wrongAnswersCount} | remaining questions: ${currentDataset.length - currentIndex}`;
+        }
+        function clearScoreboard() {
+            document.getElementById('scoreboard').innerText = ``;
+        }
+
+
+        function speakText(text) {
+            const speech = new SpeechSynthesisUtterance();
+            speech.lang = 'en-US'; // Sprache einstellen
+            speech.text = text;
+            speech.onerror = (event) => console.error("Fehler beim Sprechen:", event);
+            speechSynthesis.cancel(); // Alle laufenden Ausgaben stoppen
+            speechSynthesis.speak(speech);
         }
 
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+            return array.sort(() => Math.random() - 0.5);
         }
 
         function goToHome() {
-            document.getElementById('lesson-selection-section').classList.add('hidden');
-            document.getElementById('headerText').innerText = 'Wähle eine CSV-Datei';
+            // Blende alle anderen Abschnitte aus
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('learning-section').classList.add('hidden');
+            document.getElementById('writing-section').classList.add('hidden');
+
+            document.getElementById('lesson-selection-section').classList.remove('hidden');
+
+            // Zeige den CSV-Upload-Bereich und den Header-Text an
             document.getElementById('csv-upload-section').classList.remove('hidden');
-            document.getElementById('csvFileInput').value = ''; // Clear the file input
+            clearScoreboard();
         }
-
-        function loadDefaultCSV() {
-            const defaultFileName = 'lessons.csv';
-            fetch(defaultFileName)
-                .then(response => response.text())
-                .then(fileContent => loadCSVFile(fileContent))
-                .catch(error => console.error('Fehler beim Laden der Standard-CSV-Datei:', error));
-        }
-
-        window.onload = function () {
-            loadDefaultCSV();
-        };
     </script>
+
 </body>
 
 </html>
