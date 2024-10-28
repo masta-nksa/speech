@@ -151,6 +151,77 @@
             background-color: #5a9bd4;
             /* Hellerer Farbton bei Hover */
         }
+
+        #csv-print-section_t {
+
+
+            border: 2px solid #353b35;
+            /* Adjust the color as needed */
+            padding: 5px;
+            /* Adds space inside the border */
+            margin: 5px;
+            /* Adds space outside the border */
+            border-radius: 8px;
+            /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            /* Optional shadow */
+        }
+
+        /* Stil für das Popup */
+        .popup {
+            display: none;
+            /* Standardmäßig versteckt */
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 1000;
+            max-width: 90%;
+            /* Maximalbreite des Popups */
+            max-height: 80%;
+            /* Maximalhöhe des Popups */
+            overflow-y: auto;
+            /* Ermöglicht das Scrollen innerhalb des Popups */
+
+        }
+
+        /* Stil für den Overlay-Hintergrund */
+        .overlay {
+            display: none;
+            /* Standardmäßig versteckt */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 500;
+            overflow-y: auto;
+            /* Ermöglicht das Scrollen bei überflüssigem Inhalt */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            /* Gitterlinien zusammenführen */
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            /* Gitterlinien für die Zellen */
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 
@@ -186,15 +257,49 @@
     </div>
     <!-- Lernabschnitt (noch verborgen) -->
     <div id="lesson-selection-section" class="hidden">
-        <h2>Choose Lessons or upload a file</h2>
+        <h2>Choose lessons or upload a file</h2>
         <div id="lesson-selection" class="lesson-selection"></div>
-        <div id="csv-upload-section">
-            <h2>csv-fileupload</h2>
-            <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile(event)">
+        <div id="csv-print-section">
+            <h4>Print Vocabulary</h4>
+            <input type="radio" name="print_option" value="all" id="print_all">
+            <label for="print_all">Everything</label>
+            <input type="radio" name="print_option" value="de" id="print_de">
+            <label for="print_de">German</label>
+            <input type="radio" name="print_option" value="en" id="print_en">
+            <label for="print_en">English</label>
+            <button onclick="openTableInNewWindow()">Generate printable table</button>
+            <!-- Popup-Overlay -->
+            <div class="overlay" id="overlay"></div>
+            <!-- Popup-Inhalt -->
+            <div class="popup" id="popup">
+                <h2>Selected Vocabulary</h2>
+                <div class="option" id="popupOption"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>English</th>
+                            <th>Deutsch</th>
+                            <th></th> <!-- Leere Spalte -->
+                        </tr>
+                    </thead>
+                    <tbody id="popupTableBody">
+                        <!-- Dynamisch generierte Zeilen -->
+                    </tbody>
+                </table>
+                <button onclick="randomizeTable()">Reihenfolge randomisieren</button>
+                <button onclick="printTable()">Drucken</button>
+                <button onclick="closePopup()">Schließen</button>
+            </div>
+
+            <div id="csv-upload-section">
+                <h2>csv-fileupload</h2>
+                <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile(event)">
+            </div>
+
+            <button class="option-btn" onclick="startQuiz()">terms</button>
+            <button class="option-btn" onclick="startLearning()">spelling</button>
+            <button class="option-btn" onclick="startWriting()">writing</button>
         </div>
-        <button class="option-btn" onclick="startQuiz()">terms</button>
-        <button class="option-btn" onclick="startLearning()">spelling</button>
-        <button class="option-btn" onclick="startWriting()">writing</button>
     </div>
     <h1 id="headerText"></h1>
     <div id="mode-selection-section" class="hidden">
@@ -252,48 +357,159 @@
         let wrongAnswersCount = 0;
         let wrongAnswersLearningCount = 0;
 
+        function randomizeTable() {
+            const tableBody = document.getElementById('popupTableBody');
+            const rows = Array.from(tableBody.rows);
 
+            // Mischen der Zeilen
+            for (let i = rows.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                tableBody.appendChild(rows[j]); // Verschiebe die zufällig ausgewählte Zeile an das Ende
+            }
+        }
+        function openPopup(selectedData) {
+            const tbody = document.getElementById('popupTableBody');
+            tbody.innerHTML = ''; // Vorherige Zeilen löschen
+
+            // Druckoptionen ermitteln
+            const printOption = document.querySelector('input[name="print_option"]:checked').value;
+
+            selectedData.forEach(row => {
+                const tr = document.createElement('tr');
+
+                if (printOption === 'all') {
+                    // Englische und deutsche Spalten mit leerer Spalte
+                    tr.innerHTML = `
+                <td>${row.English}</td>
+                <td>${row.Deutsch}</td>
+            `;
+                } else if (printOption === 'de') {
+                    // Nur die deutsche Spalte mit leerer Spalte
+                    tr.innerHTML = `
+                <td>${row.Deutsch}</td>
+                        <td width="70%"></td>
+            `;
+                } else if (printOption === 'en') {
+                    // Nur die englische Spalte mit leerer Spalte
+                    tr.innerHTML = `
+                <td>${row.English}</td>
+                <td width="70%"></td>
+            `;
+                }
+
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('popup').style.display = 'block';
+        }
+        function printTable() {
+            const popup = document.getElementById('popup');
+            const popupContent = popup.innerHTML;
+
+            // Temporäres CSS für den Druck erstellen
+            const originalContent = document.body.innerHTML;
+            document.body.innerHTML = `
+        <div style="text-align: center;">
+            <h2>Selected Vocabulary</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>English</th>
+                        <th>Deutsch</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${document.getElementById('popupTableBody').innerHTML}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+            window.print(); // Druckdialog aufrufen
+            document.body.innerHTML = originalContent; // Ursprünglichen Inhalt wiederherstellen
+            closePopup(); // Popup schließen
+        }
+
+
+        function closePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('popup').style.display = 'none';
+        }
+
+        function openTableInNewWindow() {
+            const selectedLessons = Array.from(document.querySelectorAll('#lesson-selection input:checked'))
+                .map(checkbox => checkbox.value);
+            const selectedData = data.filter(item => selectedLessons.includes(item.Lesson));
+
+            if (selectedData.length === 0) {
+                alert("Bitte wähle mindestens eine Lektion aus, um die Tabelle anzuzeigen.");
+                return;
+            }
+
+            const selectedOption = document.querySelector('input[name="options"]:checked');
+
+            // Popup öffnen
+            openPopup(selectedData);
+        }
 
         const avengerImages = {
-        "Iron Man": "./img/ironman.gif",
-        "Captain America": "./img/captainamerica.gif"
-    };
+            "Iron Man": "./img/ironman.gif",
+            "Captain America": "./img/captainamerica.gif",
+            "Thor": "./img/thor.gif",
+            "Hulk": "./img/hulk.gif",
+            "Black Widow": "./img/black.gif",
+            "Scarlet Witch": "./img/scarlet.gif"
+        };
 
-    let callCount = 0; // Initialize a counter to track how many times the image is displayed
+        let callCount = 0;
 
-function displayAvenger() {
-    const avengerSelect = document.getElementById('avengerSelect');
-    const avengerImage = document.getElementById('avengerImage');
-    const avengerName = document.getElementById('avengerName');
-    
-    const selectedAvenger = avengerSelect.value;
+        function displayAvenger() {
+            const avengerSelect = document.getElementById('avengerSelect');
+            const avengerImage = document.getElementById('avengerImage');
+            const avengerName = document.getElementById('avengerName');
 
-    if (selectedAvenger) {
-        avengerImage.src = avengerImages[selectedAvenger];
-        avengerImage.alt = selectedAvenger;
-        avengerImage.style.display = "block"; // Show the image
+            const selectedAvenger = avengerSelect.value;
 
-        // Apply strong blur effect
-        avengerImage.style.filter = "blur(15px)"; // Strong blur at the start
-        reblur();
-    } else {
-        avengerImage.style.display = "none"; // Hide the image if no selection
-        avengerName.innerText = '';
-    }
-}
+            if (selectedAvenger) {
+                avengerImage.src = avengerImages[selectedAvenger];
+                avengerImage.alt = selectedAvenger;
+                avengerImage.style.display = "block";
 
-function reblur() {
-            // Increment the call count and call reblur function
-            callCount++;
-    if (callCount <= 50) {
-        // Gradually reduce the blur effect based on the number of calls
-        const blurValue = 50 - (ca50llCount * (50 / 50)); // Reduce blur for the first 15 calls
-        avengerImage.style.filter = `blur(${blurValue}px)`;
-    } else {
-        avengerImage.style.filter = "none"; // Remove blur completely after 15 calls
-    }
-}
-    
+
+                blurInit(50);
+
+            } else {
+                avengerImage.style.display = "none";
+                avengerName.innerText = '';
+            }
+        }
+
+
+        let currentBlur = 0;
+        const maxBlur = 40;
+        const steps = 20;
+        const blurStep = maxBlur / steps; // Blur-Wert, der bei jedem Schritt abnimmt
+
+        function blurInit(startBlur) {
+            currentBlur = Math.min(startBlur, maxBlur);
+            avengerImage.style.filter = `blur(${currentBlur}px)`;
+        }
+
+        function increaseBlur() {
+                currentBlur += blurStep; // Erhöhe den Blur um den festgelegten Schrittwert
+                avengerImage.style.filter = `blur(${currentBlur}px)`;
+        }
+
+        function decreaseBlur() {
+            if (currentBlur > 0) {
+                currentBlur -= blurStep; // Reduziere den Blur um den festgelegten Schrittwert
+                avengerImage.style.filter = `blur(${currentBlur}px)`;
+                //requestAnimationFrame(decreaseBlur); // Nächster Frame für sanften Effekt
+            } else {
+                avengerImage.style.filter = "none"; // Setze den Blur auf 0 für das Originalbild
+            }
+        }
 
         function loadDefaultCSV() {
             fetch("lessons.csv")
@@ -335,7 +551,7 @@ function reblur() {
 
         function chooseLessons() {
             const name = document.getElementById("nameInput").value.trim();
-            if (name) {
+            if (true) {  //name
                 document.getElementById("login-screen").classList.add("hidden");
                 document.getElementById("welcome-screen").classList.remove("hidden");
                 document.getElementById("welcomeMessage").innerText = `Hello ${name}, let's learn some English words!`;
@@ -470,7 +686,7 @@ function reblur() {
             btn.classList.add('option-btn');
             btn.innerText = option;
             btn.onclick = () => {
-                option === correctAnswer ? correctAnswersCount++ : wrongAnswersCount++;
+                option === correctAnswer ? (correctAnswersCount++, decreaseBlur()) : (wrongAnswersCount++, increaseBlur(),increaseBlur(),increaseBlur());
                 currentIndex++;
                 updateScoreboard();
                 showNextWord();
@@ -505,6 +721,7 @@ function reblur() {
             if (input === correctAnswer) {
                 speakText(correctAnswer);
                 correctAnswersCount++;
+                decreaseBlur();
                 attemptCount = 0; // Zurücksetzen bei richtiger Antwort
                 currentIndex++;
                 inputField.classList.remove('error')
@@ -513,7 +730,9 @@ function reblur() {
                 speakText(correctAnswer);
                 wrongAnswersCount++;
                 attemptCount++;
-
+                increaseBlur();
+                increaseBlur();
+                increaseBlur();
                 // Rahmen rot aufleuchten lassen
                 inputField.classList.add('error');
                 setTimeout(() => inputField.classList.remove('error'), 500);
@@ -555,11 +774,15 @@ function reblur() {
                     if (option === correctAnswer) {
                         currentIndex++;
                         correctAnswersCount++
+                        decreaseBlur();
                         updateScoreboard();
                         showNextLearningWord();
 
                     } else {
                         wrongAnswersCount++;
+                        increaseBlur();
+                        increaseBlur();
+                        increaseBlur();
                         updateScoreboard();
                     }
                 };
