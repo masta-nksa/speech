@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Registrierung</title>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <h1>Login/Registrierung</h1>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+        <input type="text" id="username" placeholder="Benutzername" required>
+        <input type="password" id="password" placeholder="Passwort" required>
+        <button type="submit">Anmelden</button>
+        <div id="message"></div>
+    </form>
+
+    <script>
+        // Deine Firebase-Konfiguration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCr5yCghQhUo5NqhIdUqWaFsjxwRY-yW8c",
+            authDomain: "translation-8d0ba.firebaseapp.com",
+            projectId: "translation-8d0ba",
+            storageBucket: "translation-8d0ba.firebasestorage.app",
+            messagingSenderId: "708055365528",
+            appId: "1:708055365528:web:7c0921856b7c4a79c51ded",
+            measurementId: "G-YLKGM7YYYT"
+        };
+
+        // Firebase initialisieren
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Funktion zur Anmeldung/Registrierung
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const email = `${username}@example.com`; // E-Mail aus dem Benutzernamen erstellen
+
+            try {
+                // Versuch, sich anzumelden
+                await auth.signInWithEmailAndPassword(email, password);
+                document.getElementById('message').textContent = 'Anmeldung erfolgreich!';
+            } catch (error) {
+                // Wenn Anmeldefehler auftritt, versuche, den Benutzer zu registrieren
+               
+                if (error.code === 'auth/invalid-login-credentials') {
+                    try {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                        document.getElementById('message').textContent = 'Registrierung und Anmeldung erfolgreich!';
+                    } catch (registrationError) {
+                        document.getElementById('message').textContent = 'Registrierungsfehler: ' + registrationError.message;
+                    }
+                } else {
+                    document.getElementById('message').textContent = 'Anmeldefehler: ' + error.message;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
