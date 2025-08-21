@@ -118,17 +118,17 @@ Hello / Get ready;Hello.;Hallo.
 3 A special day;Happy birthday!;Alles Gute zum Geburtstag!
 3 A special day;When's your birthday?;Wann hast du Geburtstag?
 3 A special day;It's in March.;Es ist im März.
-4 Houses and homes;a bathroom;ein Badezinmer
+4 Houses and homes;a bathroom;
 4 Houses and homes;a bedroom;ein Schlafzimmer
 4 Houses and homes;a garden;ein Garten
 4 Houses and homes;a hall;ein Flur
-4 Houses and homes;a kitchen;eine Kueche
+4 Houses and homes;a kitchen;eine K che
 4 Houses and homes;a living room;ein Wohnzimmer
 4 Houses and homes;a bath;ein Badezimmer
 4 Houses and homes;a bed;ein Bett
 4 Houses and homes;a chair;ein Stuhl
 4 Houses and homes;a lamp;eine Lampe
-4 Houses and homes;a sofa;eine Couche
+4 Houses and homes;a sofa;ein Sofa
 4 Houses and homes;a table;ein Tisch
 4 Houses and homes;a TV;ein Fernseher
 4 Houses and homes;a cat;eine Katze
@@ -162,4 +162,99 @@ Hello / Get ready;Hello.;Hallo.
 5 In the country;eye;das Auge
 5 In the country;nose;die Nase
 5 In the country;tongue;die Zunge
-
+6 Heads and tails;an arm;ein Arm
+6 Heads and tails;a body;ein K rper
+6 Heads and tails;fingers;Finger
+6 Heads and tails;a foot;ein Fu 
+6 Heads and tails;a head;ein Kopf
+6 Heads and tails;a leg;ein Bein
+6 Heads and tails;a mouth;ein Mund
+6 Heads and tails;a neck;ein Hals
+6 Heads and tails;a tail;ein Schwanz
+6 Heads and tails;teeth;Z hne
+6 Heads and tails;toes;Zehen
+6 Heads and tails;wings;Fl gel
+6 Heads and tails;a crocodile;ein Krokodil
+6 Heads and tails;an elephant;ein Elefant
+6 Heads and tails;a giraffe;eine Giraffe
+6 Heads and tails;a hippo;ein Nilpferd
+6 Heads and tails;a monkey;ein Affe
+6 Heads and tails;an ostrich;ein Strau 
+6 Heads and tails;a pony;ein Pony
+6 Heads and tails;a snake;eine Schlange
+6 Heads and tails;It's tall.;Es ist gro .
+6 Heads and tails;It's long.;Es ist lang.
+6 Heads and tails;It's short.;Es ist kurz.
+6 Heads and tails;It's fat.;Es ist dick.
+6 Heads and tails;It's silly.;Es ist albern.
+6 Heads and tails;Has it got a tail?;Hat es einen Schwanz?
+6 Heads and tails;Yes,  it has.;Ja hat es.
+8 Hot or cold;a skirt;ein Rock
+8 Hot or cold;sunglasses;Sonnenbrille
+8 Hot or cold;a hat;ein Hut
+8 Hot or cold;a coat;eine Jacke
+8 Hot or cold;sandals;Sandalen
+8 Hot or cold;flip flops;Flip-Flops
+8 Hot or cold;a shirt;ein Hemd
+8 Hot or cold;a dress;ein Kleid
+8 Hot or cold;gloves;Handschuhe
+8 Hot or cold;socks;Socken
+8 Hot or cold;trousers;eine Hose
+8 Hot or cold;trainers;Turnschuhe
+8 Hot or cold;shorts;eine kurze Hose
+8 Hot or cold;shoes;Schuhe
+8 Hot or cold;It s cloudy.;Es ist bew lkt.
+8 Hot or cold;It s cold.;Es ist kalt.
+8 Hot or cold;It s hot.;Es ist hei .
+8 Hot or cold;It s raining.;Es regnet.
+8 Hot or cold;It s snowing.;Es schneit.
+8 Hot or cold;It s sunny.;Es ist sonnig.
+8 Hot or cold;It s windy.;Es ist windig.
+8 Hot or cold;a crow;eine Kr he
+8 Hot or cold;a farmer;ein Bauer
+8 Hot or cold;a scarecrow;eine Vogelscheuche
+8 Hot or cold;Look! He s wearing a hat.;Schau! Er tr gt einen Hut.
+8 Hot or cold;Put your gloves on.;Zieh deine Handschuhe an.
+9 Happy holiday;a beach;ein Strand
+9 Happy holiday;a boat;ein Boot
+9 Happy holiday;an ice cream;ein Eis
+9 Happy holiday;a kite;ein Drachen
+9 Happy holiday;sand;Sand
+9 Happy holiday;the sea;das Meer
+9 Happy holiday;a shadow;ein Schatten
+9 Happy holiday;a shop;ein Gesch ft
+9 Happy holiday;eating an ice cream;ein Eis essen
+9 Happy holiday;flying a kite;einen Drachen steigen lassen
+9 Happy holiday;kayaking;Kajak fahren
+9 Happy holiday;playing tennis;Tennis spielen
+9 Happy holiday;riding a bike;Fahrrad fahren
+9 Happy holiday;sailing a boat;ein Segelboot fahren
+9 Happy holiday;shopping;einkaufen gehen
+9 Happy holiday;sleeping;schlafen
+9 Happy holiday;surfing;surfen
+9 Happy holiday;swimming;schwimmen
+9 Happy holiday;I love summer holidays.;Ich liebe Sommerferien.
+9 Happy holiday;I m tired.;Ich bin m de.
+9 Happy holiday;This is exciting.;Das ist spannend.
+9 Happy holiday;This is difficult.;Das ist schwierig.
+9 Happy holiday;This is fun.;Das macht Spa .
+9 Happy holiday;I m happy.;Ich bin gl cklich.
+0 welcome back;a clock;eine Uhr
+0 welcome back;a clown;ein Clown
+0 welcome back;a duck;eine Ente
+0 welcome back;a guitar;eine Gitarre
+0 welcome back;a lake;ein See
+0 welcome back;a trumpet;eine Trompete
+0 welcome back;What s this in English?;Was ist das auf Englisch?
+0 welcome back;It s a pencil.;Es ist ein Bleistift.
+0 welcome back;What s the time?;Wie sp t ist es?
+0 welcome back;It s three o clock.;Es ist drei Uhr.
+0 welcome back;colour;ausmalen / f rben
+0 welcome back;cut;schneiden
+0 welcome back;draw;zeichnen
+0 welcome back;listen;zuh ren
+0 welcome back;look;schauen / sehen
+0 welcome back;open your book; ffne dein Buch
+0 welcome back;put your hand up;melde dich / Hand heben
+0 welcome back;read;lesen
+0 welcome back;write;schreiben
