@@ -106,8 +106,12 @@ function parseCSV(text) {
         .filter(row => row.trim() !== '')           // Leere Zeilen ignorieren
         .slice(1)                                   // Header-Zeile überspringen
         .map(row => {
-            const [Lesson, English, Deutsch] = row.split(';');
-            return { Lesson, English, Deutsch };
+            const cols = row.split(';');
+            return {
+                Lesson: cols[0].trim(),
+                English: cols[1].trim(),
+                Deutsch: cols[2].trim()
+            };
         });
 }
 

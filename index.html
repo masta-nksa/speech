@@ -544,9 +544,9 @@
         }
 
         function parseCSV(text) {
-            return text.trim().split('\n').slice(1).map(row => {
-                const [Lesson, English, Deutsch] = row.split(';');
-                return { Lesson, English, Deutsch };
+            return text.trim().split('\n').filter(row => row.trim() !== '').slice(1).map(row => {
+                const cols = row.split(';');
+                return { Lesson: cols[0].trim(), English: cols[1].trim(), Deutsch: cols[2].trim() };
             });
         }
 
