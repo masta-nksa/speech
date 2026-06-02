@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lernprogramm</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Startbildschirm -->
+    <div id="login-screen">
+        <h1>Welcome to the Learning Program</h1>
+        <div class="input-container">
+            <label for="nameInput">Enter your name:</label>
+            <input type="text" id="nameInput" placeholder="Your name">
+        </div>
+        <div class="input-container">
+            <label for="pwInput">Enter your password:</label>
+            <input type="password" id="pwInput" placeholder="Your password">
+        </div>
+        <div class="input-container">
+            <label for="heroSelect">Choose your favorite Avenger:</label>
+            <select id="avengerSelect" onchange="displayAvenger()">
+                <option value="" disabled selected>Select an Avenger</option>
+                <option value="Iron Man">Iron Man</option>
+                <option value="Thor">Thor</option>
+                <option value="Hulk">Hulk</option>
+                <option value="Black Widow">Black Widow</option>
+                <option value="Captain America">Captain America</option>
+                <option value="Scarlet Witch">Scarlet Witch</option>
+            </select>
+        </div>
+        <button onclick="chooseLessons()">Start</button>
+    </div>
+
+    <!-- Begrüßungsbildschirm -->
+    <div id="welcome-screen" class="hidden">
+        <h1 id="welcomeMessage"></h1>
+    </div>
+
+    <!-- Lektionsauswahl -->
+    <div id="lesson-selection-section" class="hidden">
+        <h2>Choose lessons or upload a file</h2>
+        <div id="lesson-selection" class="lesson-selection"></div>
+        <div id="csv-print-section">
+            <h4>Print Vocabulary</h4>
+            <input type="radio" name="print_option" value="all" id="print_all">
+            <label for="print_all">Everything</label>
+            <input type="radio" name="print_option" value="de" id="print_de">
+            <label for="print_de">German</label>
+            <input type="radio" name="print_option" value="en" id="print_en">
+            <label for="print_en">English</label>
+            <button onclick="openTableInNewWindow()">Generate printable table</button>
+
+            <!-- Popup-Overlay -->
+            <div class="overlay" id="overlay"></div>
+            <!-- Popup-Inhalt -->
+            <div class="popup" id="popup">
+                <h2>Selected Vocabulary</h2>
+                <div class="option" id="popupOption"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>English</th>
+                            <th>Deutsch</th>
+                        </tr>
+                    </thead>
+                    <tbody id="popupTableBody">
+                        <!-- Dynamisch generierte Zeilen -->
+                    </tbody>
+                </table>
+                <button onclick="randomizeTable()">Reihenfolge randomisieren</button>
+                <button onclick="printTable()">Drucken</button>
+                <button onclick="closePopup()">Schließen</button>
+            </div>
+
+            <div id="csv-upload-section">
+                <h2>CSV file upload</h2>
+                <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile(event)">
+            </div>
+
+            <button class="option-btn" onclick="startQuiz()">terms</button>
+            <button class="option-btn" onclick="startLearning()">spelling</button>
+            <button class="option-btn" onclick="startWriting()">writing</button>
+        </div>
+    </div>
+
+    <h1 id="headerText"></h1>
+
+    <div class="home-icon" onclick="goToHome()">
+        <img src="https://img.icons8.com/ios-filled/50/000000/home.png" alt="Home">
+    </div>
+
+    <!-- Quiz-Sektion: Terms -->
+    <div id="quiz-section" class="hidden">
+        <h2>find the term</h2>
+        <div class="quiz-container">
+            <div id="word-display" class="word-display"></div>
+            <div id="options" class="options"></div>
+        </div>
+    </div>
+
+    <!-- Quiz-Sektion: Spelling -->
+    <div id="learning-section" class="hidden">
+        <h2>learning</h2>
+        <div class="quiz-container">
+            <div id="german-word-display" class="word-display"></div>
+            <div id="learning-options" class="options"></div>
+        </div>
+    </div>
+
+    <!-- Quiz-Sektion: Writing -->
+    <div id="writing-section" class="hidden">
+        <h2>writing</h2>
+        <div class="quiz-container">
+            <div id="german-word-writing" class="word-display"></div>
+            <input type="text" id="input-field" placeholder="Englische Übersetzung eingeben"
+                onkeydown="if (event.key === 'Enter') { event.preventDefault(); checkInput(); }">
+            <button class="option-btn" onclick="checkInput()">Überprüfen</button>
+        </div>
+    </div>
+
+    <div id="scoreboard" class="scoreboard"></div>
+
+    <div id="selectedAvenger" style="position: absolute; top: 20px; right: 20px; text-align: center;">
+        <img id="avengerImage" src="" alt="" style="display: none; width: 100px; height: auto;">
+        <p id="avengerName" style="font-size: 18px; color: #333;"></p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

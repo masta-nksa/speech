@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrierung</title>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+
+<body>
+    <h1>Benutzerregistrierung</h1>
+    <form id="registerForm">
+        <input type="text" id="username" placeholder="Benutzername" required>
+        <input type="password" id="password" placeholder="Passwort" required>
+        <button type="submit">Registrieren</button>
+        <div id="message"></div>
+    </form>
+
+    <script>
+        // Funktion zur Registrierung
+        document.getElementById('registerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const email = `${username}@example.com`; // E-Mail aus dem Benutzernamen erstellen
+
+            try {
+                // Benutzer registrieren
+                await auth.createUserWithEmailAndPassword(email, password);
+                document.getElementById('message').textContent = 'Registrierung erfolgreich!';
+            } catch (error) {
+                document.getElementById('message').textContent = 'Registrierungsfehler: ' + error.message;
+            }
+        });
+    </script>
+</body>
+
+</html>
