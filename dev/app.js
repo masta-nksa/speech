@@ -168,7 +168,8 @@ function openPopup(selectedData) {
     const tbody = document.getElementById('popupTableBody');
     tbody.innerHTML = '';
 
-    const printOption = document.querySelector('input[name="print_option"]:checked').value;
+    const checkedRadio = document.querySelector('input[name="print_option"]:checked');
+    const printOption = checkedRadio ? checkedRadio.value : 'all';
 
     selectedData.forEach(row => {
         const tr = document.createElement('tr');
