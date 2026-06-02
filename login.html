@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login/Registrierung</title>
+    <title>Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
 </head>
 <body>
-    <h1>Login/Registrierung</h1>
+    <h1>Anmeldung</h1>
     <form id="loginForm" onsubmit="handleLogin(event)">
         <input type="text" id="username" placeholder="Benutzername" required>
         <input type="password" id="password" placeholder="Passwort" required>
@@ -17,21 +18,6 @@
     </form>
 
     <script>
-        // Deine Firebase-Konfiguration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCr5yCghQhUo5NqhIdUqWaFsjxwRY-yW8c",
-            authDomain: "translation-8d0ba.firebaseapp.com",
-            projectId: "translation-8d0ba",
-            storageBucket: "translation-8d0ba.firebasestorage.app",
-            messagingSenderId: "708055365528",
-            appId: "1:708055365528:web:7c0921856b7c4a79c51ded",
-            measurementId: "G-YLKGM7YYYT"
-        };
-
-        // Firebase initialisieren
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
         // Funktion zur Anmeldung/Registrierung
         async function handleLogin(event) {
             event.preventDefault();
@@ -45,7 +31,6 @@
                 document.getElementById('message').textContent = 'Anmeldung erfolgreich!';
             } catch (error) {
                 // Wenn Anmeldefehler auftritt, versuche, den Benutzer zu registrieren
-               
                 if (error.code === 'auth/invalid-login-credentials') {
                     try {
                         await auth.createUserWithEmailAndPassword(email, password);
